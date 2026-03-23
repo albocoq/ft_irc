@@ -21,7 +21,7 @@ private:
 public:
     Server(int port, const std::string& password);
     ~Server();
-
+    void initServer();
    
 
 private:
