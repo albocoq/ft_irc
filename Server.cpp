@@ -2,6 +2,7 @@
 #include "Message.hpp"
 #include <iostream>
 #include <cstring>
+#include <cerrno>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -28,7 +29,9 @@ void Server::initServer() {
     int opt = 1;
     setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    fcntl(_serverFd, F_SETFL, O_NONBLOCK);
+    int flags = fcntl(_serverFd, F_GETFL, 0);
+    if (flags >= 0)
+        fcntl(_serverFd, F_SETFL, flags | O_NONBLOCK);
 
     sockaddr_in addr;
     std::memset(&addr, 0, sizeof(addr));
@@ -62,17 +65,48 @@ void Server::run() {
             return;
         }
 
-        for (size_t i = 0; i < _fds.size(); i++) {
+        for (size_t i = 0; i < _fds.size(); ) {
+            int fd = _fds[i].fd;
+            short revents = _fds[i].revents;
 
-            if (_fds[i].revents & POLLIN) {
-                if (_fds[i].fd == _serverFd)
+            if (fd == _serverFd) {
+                if (revents & POLLIN)
                     acceptClient();
-                else
-                    handleClientRead(i);
+                i++;
+                continue;
             }
 
-            if (_fds[i].revents & POLLOUT)
+            if (revents & (POLLERR | POLLHUP | POLLNVAL)) {
+                disconnectClient(i);
+                continue;
+            }
+
+            if (revents & POLLIN) {
+                handleClientRead(i);
+                if (i >= _fds.size() || _fds[i].fd != fd)
+                    continue;
+            }
+
+            if (revents & POLLOUT) {
                 handleClientWrite(i);
+                if (i >= _fds.size() || _fds[i].fd != fd)
+                    continue;
+            }
+
+            Client* client = getClientByFd(fd);
+            if (!client)
+                continue;
+
+            _fds[i].events = POLLIN;
+            if (!client->getWriteBuffer().empty())
+                _fds[i].events |= POLLOUT;
+
+            if (client->isToBeDisconnected() && client->getWriteBuffer().empty()) {
+                disconnectClient(i);
+                continue;
+            }
+
+            i++;
         }
     }
 }
@@ -85,7 +119,9 @@ void Server::acceptClient() {
     if (clientFd < 0)
         return;
 
-    fcntl(clientFd, F_SETFL, O_NONBLOCK);
+    int flags = fcntl(clientFd, F_GETFL, 0);
+    if (flags >= 0)
+        fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
 
     std::string ip = inet_ntoa(clientAddr.sin_addr);
 
@@ -94,7 +130,7 @@ void Server::acceptClient() {
 
     pollfd p;
     p.fd = clientFd;
-    p.events = POLLIN | POLLOUT;
+    p.events = POLLIN;
     _fds.push_back(p);
 
     std::cout << "New client: " << clientFd << std::endl;
@@ -107,13 +143,24 @@ void Server::handleClientRead(size_t i) {
     int bytes = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
 
     Client* client = getClientByFd(_fds[i].fd);
-
-    if (bytes <= 0) {
+    if (!client) {
         disconnectClient(i);
         return;
     }
 
-    client->appendReadBuffer(buffer);
+    if (bytes == 0) {
+        disconnectClient(i);
+        return;
+    }
+
+    if (bytes < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return;
+        disconnectClient(i);
+        return;
+    }
+
+    client->appendReadBuffer(std::string(buffer, bytes));
 
     std::string line;
     while (!(line = client->extractLine()).empty()) {
@@ -124,21 +171,34 @@ void Server::handleClientRead(size_t i) {
 
 void Server::handleClientWrite(size_t i) {
     Client* client = getClientByFd(_fds[i].fd);
-    std::string data = client->getWriteBuffer();
-
-    if (data.empty())
-        return;
-
-    int sent = send(_fds[i].fd, data.c_str(), data.size(), 0);
-
-    if (sent <= 0) {
+    if (!client) {
         disconnectClient(i);
         return;
     }
 
-    client->setWriteBuffer("");
+    std::string data = client->getWriteBuffer();
 
-    if (client->isToBeDisconnected())
+    if (data.empty()) {
+        if (client->isToBeDisconnected())
+            disconnectClient(i);
+        return;
+    }
+
+    int sent = send(_fds[i].fd, data.c_str(), data.size(), 0);
+
+    if (sent < 0) {
+        if (errno == EAGAIN || errno == EWOULDBLOCK)
+            return;
+        disconnectClient(i);
+        return;
+    }
+
+    if (static_cast<size_t>(sent) < data.size())
+        client->setWriteBuffer(data.substr(sent));
+    else
+        client->setWriteBuffer("");
+
+    if (client->isToBeDisconnected() && client->getWriteBuffer().empty())
         disconnectClient(i);
 }
 
