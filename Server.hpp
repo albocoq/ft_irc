@@ -21,11 +21,16 @@ private:
 public:
     Server(int port, const std::string& password);
     ~Server();
+
     void initServer();
-   
+    void run();
 
 private:
-    
+    void acceptClient();
+    void handleClientRead(size_t i);
+    void handleClientWrite(size_t i);
+    void disconnectClient(size_t i);
+    Client* getClientByFd(int fd);
 };
 
 #endif

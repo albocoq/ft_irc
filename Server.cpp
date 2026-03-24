@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "Message.hpp"
 #include <iostream>
 #include <cstring>
 #include <unistd.h>
@@ -12,6 +13,7 @@ Server::Server(int port, const std::string& password)
 Server::~Server() {
     if (_serverFd >= 0)
         close(_serverFd);
+
     for (size_t i = 0; i < _clients.size(); i++)
         delete _clients[i];
 }
@@ -19,21 +21,14 @@ Server::~Server() {
 void Server::initServer() {
     _serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_serverFd < 0) {
-        std::cerr << "Error creating socket\n";
+        std::cerr << "Socket error\n";
         exit(1);
     }
 
     int opt = 1;
-    if (setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-        std::cerr << "Error: setsockopt failed\n";
-        exit(1);
-    }
+    setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    // Non-blocking
-    if (fcntl(_serverFd, F_SETFL, O_NONBLOCK) < 0) {
-        std::cerr << "Error: fcntl failed\n";
-        exit(1);
-    }
+    fcntl(_serverFd, F_SETFL, O_NONBLOCK);
 
     sockaddr_in addr;
     std::memset(&addr, 0, sizeof(addr));
@@ -43,20 +38,131 @@ void Server::initServer() {
     addr.sin_addr.s_addr = INADDR_ANY;
 
     if (bind(_serverFd, (sockaddr*)&addr, sizeof(addr)) < 0) {
-        std::cerr << "Bind failed\n";
+        std::cerr << "Bind error\n";
         exit(1);
     }
 
     if (listen(_serverFd, SOMAXCONN) < 0) {
-        std::cerr << "Listen failed\n";
+        std::cerr << "Listen error\n";
         exit(1);
     }
 
-    // Añadir server_fd a poll
     pollfd p;
     p.fd = _serverFd;
     p.events = POLLIN;
     _fds.push_back(p);
 
-    std::cout << "Server started on port " << _port << std::endl;
+    std::cout << "Server running on port " << _port << std::endl;
+}
+
+void Server::run() {
+    while (true) {
+        if (poll(&_fds[0], _fds.size(), -1) < 0) {
+            std::cerr << "poll error\n";
+            return;
+        }
+
+        for (size_t i = 0; i < _fds.size(); i++) {
+
+            if (_fds[i].revents & POLLIN) {
+                if (_fds[i].fd == _serverFd)
+                    acceptClient();
+                else
+                    handleClientRead(i);
+            }
+
+            if (_fds[i].revents & POLLOUT)
+                handleClientWrite(i);
+        }
+    }
+}
+
+void Server::acceptClient() {
+    sockaddr_in clientAddr;
+    socklen_t len = sizeof(clientAddr);
+
+    int clientFd = accept(_serverFd, (sockaddr*)&clientAddr, &len);
+    if (clientFd < 0)
+        return;
+
+    fcntl(clientFd, F_SETFL, O_NONBLOCK);
+
+    std::string ip = inet_ntoa(clientAddr.sin_addr);
+
+    Client* client = new Client(clientFd, ip);
+    _clients.push_back(client);
+
+    pollfd p;
+    p.fd = clientFd;
+    p.events = POLLIN | POLLOUT;
+    _fds.push_back(p);
+
+    std::cout << "New client: " << clientFd << std::endl;
+}
+
+void Server::handleClientRead(size_t i) {
+    char buffer[1024];
+    memset(buffer, 0, sizeof(buffer));
+
+    int bytes = recv(_fds[i].fd, buffer, sizeof(buffer), 0);
+
+    Client* client = getClientByFd(_fds[i].fd);
+
+    if (bytes <= 0) {
+        disconnectClient(i);
+        return;
+    }
+
+    client->appendReadBuffer(buffer);
+
+    std::string line;
+    while (!(line = client->extractLine()).empty()) {
+        Message msg(line);
+        _handler.execute(*client, msg, _clients);
+    }
+}
+
+void Server::handleClientWrite(size_t i) {
+    Client* client = getClientByFd(_fds[i].fd);
+    std::string data = client->getWriteBuffer();
+
+    if (data.empty())
+        return;
+
+    int sent = send(_fds[i].fd, data.c_str(), data.size(), 0);
+
+    if (sent <= 0) {
+        disconnectClient(i);
+        return;
+    }
+
+    client->setWriteBuffer("");
+
+    if (client->isToBeDisconnected())
+        disconnectClient(i);
+}
+
+void Server::disconnectClient(size_t i) {
+    int fd = _fds[i].fd;
+
+    for (size_t j = 0; j < _clients.size(); j++) {
+        if (_clients[j]->getFd() == fd) {
+            delete _clients[j];
+            _clients.erase(_clients.begin() + j);
+            break;
+        }
+    }
+
+    close(fd);
+    _fds.erase(_fds.begin() + i);
+
+    std::cout << "Disconnected: " << fd << std::endl;
+}
+
+Client* Server::getClientByFd(int fd) {
+    for (size_t i = 0; i < _clients.size(); i++) {
+        if (_clients[i]->getFd() == fd)
+            return _clients[i];
+    }
+    return NULL;
 }
