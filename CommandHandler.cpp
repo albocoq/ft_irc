@@ -11,6 +11,19 @@ CommandHandler::CommandHandler(std::string serverPassword): _serverPassword(serv
     _commands.insert(std::make_pair("PART", &CommandHandler::handlePart));
 }
 
+CommandHandler::~CommandHandler() {
+    std::map<std::string, Channel*>::iterator it = _channels.begin();
+    std::map<std::string, Channel*>::iterator ite = _channels.end();
+
+    while (it != ite)
+    {
+        std::map<std::string, Channel*>::iterator copyIt = it;
+        it++;
+        delete copyIt->second;
+    }
+    _channels.clear();
+}
+
 void CommandHandler::execute(Client& client, const Message& message, std::vector<Client*>& annular) {
     std::string CommandWord = message.getCommand();
 

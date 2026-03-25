@@ -21,7 +21,7 @@ void CommandHandler::handlePart(Client& client, const Message& message, std::vec
         currentChannel = it->second;
         std::map<int, Client*>::const_iterator itc = currentChannel->getAllChanel().find(client.getFd());
         if (itc == currentChannel->getAllChanel().end()) {
-            client.appendWriteBuffer(":ircserv 442 " + client.getNickname() + " " + channelName + "  :No on channel");
+            client.appendWriteBuffer(":ircserv 442 " + client.getNickname() + " " + channelName + "  :You're not on that channel");
             return;
         }
     } else {

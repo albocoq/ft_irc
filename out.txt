@@ -1,0 +1,227 @@
+#include "CommandHandler.hpp"
+
+void CommandHandler::handleJoin(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+
+    if (params.size() < 1) {
+        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " join :Not enough parameters");
+        return;
+    }
+
+    std::string channelName = params.front();
+    
+    std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+    Channel* currentChannel;
+
+    if (it != _channels.end()) {
+        currentChannel = it->second;
+        it->second->addClient(client);
+    } else {
+        currentChannel = new Channel(channelName);
+
+        currentChannel->addClient(client);
+        _channels.insert(std::make_pair(channelName, currentChannel));
+    }
+
+    std::map<int, Client*>::const_iterator firstClient = currentChannel->getAllChanel().begin();
+    std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
+    std::string listNicks = "";
+
+    while (firstClient != lastClient) {
+        firstClient->second->appendWriteBuffer(":" + client.getNickname() + " JOIN " + channelName);
+        listNicks += firstClient->second->getNickname() + " ";
+        firstClient++;
+    }
+    
+
+    client.appendWriteBuffer(":ircserv 353 " + client.getNickname() + " = " + currentChannel->getNameChannel() + " :" + listNicks);
+    client.appendWriteBuffer(":ircserv 366 " + client.getNickname() + " " + currentChannel->getNameChannel() + " :End of /NAMES list");
+}
+#include "CommandHandler.hpp"
+
+void CommandHandler::handlePart(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+
+    if (params.size() < 1) {
+        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " part :Not enough parameters");
+        return;
+    }
+
+    std::string channelName = params.front();
+    std::string partMsg;
+
+    if (params.size() > 1)
+        partMsg = params.back();
+    
+    std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+    Channel* currentChannel;
+
+    if (it != _channels.end()) {
+        currentChannel = it->second;
+        std::map<int, Client*>::const_iterator itc = currentChannel->getAllChanel().find(client.getFd());
+        if (itc == currentChannel->getAllChanel().end()) {
+            client.appendWriteBuffer(":ircserv 442 " + client.getNickname() + " " + channelName + "  :No on channel");
+            return;
+        }
+    } else {
+        client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + channelName + "  :No such channel");
+        return;
+    }
+
+    std::map<int, Client*>::const_iterator firstClient = currentChannel->getAllChanel().begin();
+    std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
+
+    while (firstClient != lastClient) {
+        firstClient->second->appendWriteBuffer(":" + client.getNickname() + " PART " + channelName + (!partMsg.empty() ? " :" + partMsg : ""));
+        
+        firstClient++;
+    }
+
+    currentChannel->removeClient(client.getFd());
+
+    if (currentChannel->getAllChanel().empty()) {
+        _channels.erase(channelName);
+        delete currentChannel;
+    }
+}
+#include "CommandHandler.hpp"
+
+void CommandHandler::handlePassword(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+
+    if (params.size() >= 1) {
+        if (params.front() == _serverPassword)
+            client.setHasPassed(true);
+        else
+            client.appendWriteBuffer(":ircserv 464 " + client.getNickname() + " :Password incorrect");
+    } else
+        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " password :Not enough parameters");
+}
+#include "CommandHandler.hpp"
+
+void CommandHandler::handlePing(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+    
+    if (params.size() < 1) {
+        client.appendWriteBuffer(":ircserv 409 " + client.getNickname() + " :No origin specified");        
+    } else {
+        client.appendWriteBuffer(":ircserv PONG ircserv :" + params.front());
+    }
+}#include "CommandHandler.hpp"
+
+void CommandHandler::handlePrivmsg(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+
+    if (params.size() < 2) {
+        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " privmsg :Not enough parameters");
+        return;
+    }
+
+    std::string recipient = params.front();
+    std::string msgText = params.back();
+    if (recipient[0] == '#') {
+        std::map<std::string, Channel *>::iterator it = _channels.find(recipient);
+
+        if (it == _channels.end()) {
+            client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + recipient + " :No such channel");
+            return;
+        }
+
+        if (it->second->getAllChanel().find(client.getFd()) == it->second->getAllChanel().end()) {
+            client.appendWriteBuffer(":ircserv 404 " + client.getNickname() + " " + recipient + " :Cannot send to channel");
+            return;
+        }
+
+        std::map<int, Client*>::const_iterator itc = it->second->getAllChanel().begin();
+        std::map<int, Client*>::const_iterator itce = it->second->getAllChanel().end();
+
+        while (itc != itce)
+        {
+            if (itc->second->getFd() != client.getFd())
+                itc->second->appendWriteBuffer(":" + client.getNickname() + " PRIVMSG " + recipient + " :" + msgText);
+            itc++;
+        }
+    } else {
+        for (size_t i = 0; i < annular.size(); i++) {
+            if (annular[i]->getNickname() == recipient) {
+                annular[i]->appendWriteBuffer(":" + client.getNickname() + " PRIVMSG " + recipient + " :" + msgText);
+                return;
+            }
+        }
+        client.appendWriteBuffer(":ircserv 401 " + client.getNickname() + " " + recipient + " :No such nick/channel");
+    }
+}
+#include "CommandHandler.hpp"
+
+void CommandHandler::handlePseudo(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+
+    if (params.size() >= 1) {
+        if (!params.front().empty()) {
+            std::string pseudo = params.front();
+
+            for (size_t i = 0; i < annular.size(); i++) {
+                if (annular[i]->getNickname() == pseudo && annular[i] != &client) {
+                    client.appendWriteBuffer(":ircserv 433 * " + pseudo + " :Nickname is already in use");
+                    return;
+                }
+            }
+            client.setHasNickname(true);
+            client.setNickname(pseudo);
+            checkRegistration(client);
+        }
+    } else
+        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " pseudo :Not enough parameters");
+}#include "CommandHandler.hpp"
+
+void CommandHandler::handleQuit(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+    std::string quitMsg;
+
+    if (params.size() >= 1)
+        quitMsg = params.front();
+    
+    std::map<std::string, Channel*>::iterator it = _channels.begin();
+
+    while (it != _channels.end()) {
+        std::map<std::string, Channel*>::iterator itCopy = it;
+        it++; 
+
+        Channel* currentChannel = itCopy->second;
+        
+        std::map<int, Client*>::const_iterator searchClient = currentChannel->getAllChanel().find(client.getFd());
+
+        if (searchClient != currentChannel->getAllChanel().end()) {
+            
+            std::map<int, Client*>::const_iterator firstClient = currentChannel->getAllChanel().begin();
+            std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
+
+            while (firstClient != lastClient) {
+                firstClient->second->appendWriteBuffer(":" + client.getNickname() + " QUIT :Quit: " + quitMsg);
+                firstClient++;
+            }
+            
+            currentChannel->removeClient(client.getFd());
+
+            if (currentChannel->getAllChanel().empty()) {
+                delete currentChannel;
+                _channels.erase(itCopy);
+            }
+        }
+    }
+    
+    client.appendWriteBuffer("ERROR :Closing Link: " + client.getIp() + " (Quit)");
+    client.setToBeDisconnected(true);
+}#include "CommandHandler.hpp"
+
+void CommandHandler::handleUser(Client& client, const Message& message, std::vector<Client*>& annular) {
+    std::vector<std::string> params = message.getParameters();
+
+    if (params.size() >= 1) {
+        client.setUsername(params.front());
+        client.setRealname(params.back());
+        client.setHasUser(true);
+        checkRegistration(client);
+    } else
+        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " user :Not enough parameters");
+}

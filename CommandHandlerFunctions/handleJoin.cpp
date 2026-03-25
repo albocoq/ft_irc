@@ -25,9 +25,15 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
 
     std::map<int, Client*>::const_iterator firstClient = currentChannel->getAllChanel().begin();
     std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
+    std::string listNicks = "";
 
     while (firstClient != lastClient) {
         firstClient->second->appendWriteBuffer(":" + client.getNickname() + " JOIN " + channelName);
+        listNicks += firstClient->second->getNickname() + " ";
         firstClient++;
     }
+    
+
+    client.appendWriteBuffer(":ircserv 353 " + client.getNickname() + " = " + currentChannel->getNameChannel() + " :" + listNicks);
+    client.appendWriteBuffer(":ircserv 366 " + client.getNickname() + " " + currentChannel->getNameChannel() + " :End of /NAMES list");
 }
