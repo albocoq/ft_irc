@@ -45,6 +45,7 @@ class Client {
         void setToBeDisconnected(bool status);
         void appendReadBuffer(std::string data);
         void appendWriteBuffer(std::string message);
+        bool hasCompleteLine() const;
         std::string extractLine();
 };
 

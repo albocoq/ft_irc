@@ -1,8 +1,9 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
 
 void CommandHandler::handleJoin(Client& client, const Message& message, std::vector<Client*>& annular) {
+    (void)annular;
     std::vector<std::string> params = message.getParameters();
-
+    
     if (params.size() < 1) {
         client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " join :Not enough parameters");
         return;
