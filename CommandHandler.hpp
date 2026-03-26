@@ -7,12 +7,14 @@
 #include <iostream>
 #include "Client.hpp"
 #include "Message.hpp"
+#include "Channel.hpp"
 
 class CommandHandler {
     private:
         typedef void (CommandHandler::*CommandFn)(Client&, const Message&, std::vector<Client*>&);
         std::map<std::string, CommandFn> _commands;
         std::string _serverPassword;
+        std::map<std::string, Channel*> _channels;
 
         void handlePassword(Client& client, const Message& message, std::vector<Client*>& annular);
         void handlePseudo(Client& client, const Message& message, std::vector<Client*>& annular);
@@ -20,6 +22,8 @@ class CommandHandler {
         void handlePrivmsg(Client& client, const Message& message, std::vector<Client*>& annular);
         void handlePing(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleQuit(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleJoin(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handlePart(Client& client, const Message& message, std::vector<Client*>& annular);
 
         void checkRegistration(Client& client);
 
