@@ -24,6 +24,10 @@ class CommandHandler {
         void handleQuit(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleJoin(Client& client, const Message& message, std::vector<Client*>& annular);
         void handlePart(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleKick(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleTopic(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleInvite(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleMode(Client& client, const Message& message, std::vector<Client*>& annular);
 
 		void checkRegistration(Client& client);
 

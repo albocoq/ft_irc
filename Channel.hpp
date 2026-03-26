@@ -3,6 +3,7 @@
 
 #include <set>
 #include <string>
+#include <map>
 #include "Client.hpp"
 
 class Channel {
@@ -10,11 +11,12 @@ public:
 	explicit Channel(const std::string &name = "");
 
 	const std::string &getName() const;
+	const std::string &getNameChannel() const;
 
-	void addMember(Client *client);
-	void removeMember(Client *client);
-	bool hasMember(Client *client) const;
-	bool hasMemberByFd(int fd) const;
+	void addClient(Client& client);
+	void removeClient(int fd);
+	bool isClient(int fd) const;
+	std::map<int, Client*> getAllChanel() const;
 
 	void addOperator(Client *client);
 	void removeOperator(Client *client);
@@ -33,11 +35,10 @@ public:
 	std::string key;
 	int userLimit;
 
-	std::set<Client *> members;
+private:
+	std::map<int, Client*> _clients; // fd -> Client*
 	std::set<Client *> operators;
 	std::set<Client *> invited;
-
-private:
 	std::string _name;
 };
 

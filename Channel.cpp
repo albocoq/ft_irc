@@ -5,15 +5,28 @@ Channel::Channel(const std::string &name)
 
 const std::string &Channel::getName() const { return _name; }
 
-void Channel::addMember(Client *client) { members.insert(client); }
+const std::string &Channel::getNameChannel() const { return _name; }
 
-void Channel::removeMember(Client *client) {
-	members.erase(client);
-	operators.erase(client);
-	invited.erase(client);
+void Channel::addClient(Client& client) {
+	_clients[client.getFd()] = &client;
 }
 
-bool Channel::hasMember(Client *client) const { return members.find(client) != members.end(); }
+void Channel::removeClient(int fd) {
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it != _clients.end()) {
+		operators.erase(it->second);
+		invited.erase(it->second);
+		_clients.erase(it);
+	}
+}
+
+bool Channel::isClient(int fd) const {
+	return _clients.find(fd) != _clients.end();
+}
+
+std::map<int, Client*> Channel::getAllChanel() const {
+	return _clients;
+}
 
 void Channel::addOperator(Client *client) { operators.insert(client); }
 
@@ -26,14 +39,7 @@ void Channel::invite(Client *client) { invited.insert(client); }
 void Channel::uninvite(Client *client) { invited.erase(client); }
 
 bool Channel::isInvited(Client *client) const { return invited.find(client) != invited.end(); }
-bool Channel::hasMemberByFd(int fd) const {
-	for (std::set<Client *>::const_iterator it = members.begin(); it != members.end(); ++it) {
-		if ((*it)->getFd() == fd)
-			return true;
-	}
-	return false;
-}
 
-bool Channel::empty() const { return members.empty(); }
+bool Channel::empty() const { return _clients.empty(); }
 
-size_t Channel::memberCount() const { return members.size(); }
+size_t Channel::memberCount() const { return _clients.size(); }
