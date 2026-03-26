@@ -33,40 +33,47 @@ El cerebro de las operaciones. Utiliza un `std::map` de punteros a funciones mie
 
 ---
 
-## 📡 Guía de Integración (Para la Persona 1: Red y Sockets)
+## 🌐 Persona A: Arquitecto de Red (Sockets y Multiplexación)
 
-Tu objetivo es hacer de "puente" entre Internet (epoll/poll) y este Motor Core. Este es el flujo exacto que debes implementar en tu bucle principal:
+**Objetivo:** Construir el puente de comunicación entre Internet y el Motor Core. No tocarás la lógica de los comandos IRC, solo el flujo de bytes.
 
-1. **Lectura de Red:** Cuando tu multiplexor (epoll/poll) detecte datos en un FD, léelos con `recv()` y envíalos al cliente:
-   `cliente->appendReadBuffer(datos_recibidos);`
-2. **Procesamiento:** Inicia un bucle `while` para extraer todas las líneas completas posibles:
-   `std::string linea = cliente->extractLine();`
-3. **Ejecución:** Por cada línea extraída, crea el mensaje y pásalo al enrutador junto con la lista global de clientes:
-   `Message msg(linea);`
-   `handler.execute(*cliente, msg, vector_global_clientes);`
-4. **Escritura en Red:** Revisa si el motor ha generado respuestas. Si es así, envíalas por el socket y limpia el búfer:
-   `if (!cliente->getWriteBuffer().empty()) { send(...); }`
-5. **Desconexión:** Al final del ciclo, comprueba si el motor ha marcado al cliente para ser expulsado:
-   `if (cliente->isToBeDisconnected()) { close(fd); /* eliminar de la lista */ }`
+* **Apertura del Servidor:** Crear el "Socket" principal, vincularlo a un puerto de red (`bind`) y ponerlo a escuchar conexiones entrantes (`listen`).
+* **Multiplexación (El corazón de la red):** Implementar `epoll`, `poll` o `select`. El objetivo es tener un solo bucle capaz de vigilar decenas de conexiones simultáneamente sin bloquear el programa.
+* **I/O No Bloqueante:** Configurar todos los File Descriptors (FDs) con la opción `O_NONBLOCK` usando la función `fcntl` (Requisito estricto de 42).
+* **Recepción (Read):** Cuando el multiplexor detecte actividad entrante, usar `recv()` para capturar el texto en bruto e inyectarlo en el motor usando: `cliente->appendReadBuffer(datos)`.
+* **Envío (Write):** Comprobar constantemente si el cliente tiene respuestas pendientes. Si `cliente->getWriteBuffer()` no está vacío, usar `send()` para enviarlo por red y luego vaciar el búfer.
+* **Gestión de Desconexión:** Vigilar el método `cliente->isToBeDisconnected()`. Si devuelve `true` (ej. tras un comando `QUIT`), cerrar la conexión de red con `close(fd)` y destruir el objeto de forma segura.
 
 ---
 
-## 💬 Guía de Expansión (Para la Persona 3: Canales)
+## 🏠 Persona B: Arquitecto de Salas (Gestión de Canales)
 
-Tu objetivo es añadir la lógica de salas de chat y moderación utilizando la base que ya existe en el `CommandHandler`.
+**Objetivo:** Apoyarse en el enrutador actual (`CommandHandler`) para crear y gestionar el concepto de "Salas de chat" (canales que empiezan por `#`).
 
-1. **Nueva Clase `Channel`:** Crea una clase para representar una sala. Debe contener:
-   * Lista de miembros (punteros a `Client`).
-   * Lista de operadores.
-   * El `Topic` (tema) de la sala.
-   * Los modos de la sala (contraseña, límite de usuarios, etc.).
-2. **Nuevos Comandos:** Abre `CommandHandler.cpp` y añade las siguientes funciones al mapa de comandos:
-   * `JOIN`: Unirse o crear un canal.
-   * `PART`: Salir de un canal.
-   * `KICK`: Expulsar a un usuario (requiere verificar si el emisor es operador).
-   * `TOPIC`: Ver o modificar el tema.
-   * `MODE`: Modificar las reglas del canal.
-3. **Actualizar `PRIVMSG`:** En la función actual de `handlePrivmsg`, busca el comentario `// TODO: Trabajo de persona 3` dentro de la condición `if (recipient[0] == '#')`. Allí deberás iterar sobre los miembros del canal objetivo y enviarles el mensaje a todos (excepto al remitente).
+* **La Clase `Channel`:** Crear este nuevo objeto. Debe contener el nombre de la sala y una lista de los usuarios que están dentro (ej. un `std::vector<Client*>`).
+* **Directorio de Salas:** Añadir un `std::map` global en el servidor o en el enrutador para almacenar y buscar rápidamente las salas activas.
+* **Comando `JOIN`:** * Si la sala no existe, crearla y añadir al usuario. 
+  * Si existe, añadir al usuario. 
+  * Enviar mensaje a los presentes avisando de la entrada y responder al nuevo usuario con la lista de miembros (`353 RPL_NAMREPLY`).
+* **Comando `PART`:** Retirar al usuario de la lista de la sala. Si la sala se queda completamente vacía, destruir el objeto `Channel` para liberar memoria.
+* **Actualizar `PRIVMSG`:** Modificar la función `handlePrivmsg` existente. Cuando el objetivo empiece por `#`, buscar la sala e iterar para copiar el mensaje en el `_writeBuffer` de **todos** los miembros (excepto el remitente).
+
+---
+
+## 🛡️ Persona C: Moderador (Privilegios y Comandos Avanzados)
+
+**Objetivo:** Implementar las reglas de administración y los poderes especiales dentro de las salas creadas por la Persona B.
+
+* **Estado de Operador:** Actualizar la clase `Channel` para diferenciar a un usuario normal de un operador (usualmente indicado con un `@` en su apodo).
+* **Comando `KICK`:** Función para expulsar a un usuario de una sala. Requiere verificar primero si el emisor tiene privilegios de operador en esa sala específica.
+* **Comando `TOPIC`:** Permitir a los usuarios consultar el tema actual de la sala, o modificarlo si tienen permiso.
+* **Comando `INVITE`:** Permitir invitar a un usuario específico (que está en el servidor pero no en la sala) a unirse a un canal privado.
+* **Comando `MODE`:** El comando más complejo. Permite cambiar la configuración de la sala. Se deben gestionar 5 modos:
+  * `+i`: Establecer la sala como "Solo por invitación".
+  * `+t`: Restringir el derecho de cambiar el `TOPIC` solo a los operadores.
+  * `+k`: Añadir una contraseña para poder entrar a la sala.
+  * `+o`: Dar (o quitar) privilegios de operador a otro miembro.
+  * `+l`: Definir un límite máximo de usuarios simultáneos en la sala.
 
 ---
 *Fin del documento.*
