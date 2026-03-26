@@ -1,6 +1,7 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
 
 void CommandHandler::handleUser(Client& client, const Message& message, std::vector<Client*>& annular) {
+    (void)annular;
     std::vector<std::string> params = message.getParameters();
 
     if (params.size() >= 1) {

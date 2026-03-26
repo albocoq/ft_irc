@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cstring>
 #include <cerrno>
+#include <cstdlib>
 #include <unistd.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -163,7 +164,8 @@ void Server::handleClientRead(size_t i) {
     client->appendReadBuffer(std::string(buffer, bytes));
 
     std::string line;
-    while (!(line = client->extractLine()).empty()) {
+    while (client->hasCompleteLine()) {
+        line = client->extractLine();
         Message msg(line);
         _handler.execute(*client, msg, _clients);
     }

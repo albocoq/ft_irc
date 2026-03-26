@@ -118,6 +118,10 @@ void Client::appendReadBuffer(std::string data) {
     _readBuffer.append(data);
 }
 
+bool Client::hasCompleteLine() const {
+    return _readBuffer.find("\r\n") != std::string::npos;
+}
+
 void Client::appendWriteBuffer(std::string message) {
     
     if (message.length() >= 2 && message[message.length() - 1] != '\n' && message[message.length() - 2] != '\r')

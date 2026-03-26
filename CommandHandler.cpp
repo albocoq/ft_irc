@@ -31,7 +31,7 @@ void CommandHandler::execute(Client& client, const Message& message, std::vector
     if (it != _commands.end())
         (this->*(it->second))(client, message, annular);
     else
-        std::cout << "Commande not found" << std::endl;
+        client.appendWriteBuffer(":ircserv 421 " + client.getNickname() + " " + CommandWord + " :Unknown command");
 }
 
 void CommandHandler::checkRegistration(Client& client) {
