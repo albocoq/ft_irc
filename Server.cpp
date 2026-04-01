@@ -9,9 +9,11 @@
 #include <fcntl.h>
 #include <sys/socket.h>
 
+// Inicializa atributos base del servidor y el manejador de comandos.
 Server::Server(int port, const std::string& password)
     : _port(port), _password(password), _serverFd(-1), _handler(password) {}
 
+// Cierra recursos abiertos del servidor y libera clientes en memoria.
 Server::~Server() {
     if (_serverFd >= 0)
         close(_serverFd);
@@ -20,6 +22,7 @@ Server::~Server() {
         delete _clients[i];
 }
 
+// Configura socket no bloqueante, bind/listen y registra fd en poll.
 void Server::initServer() {
     _serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_serverFd < 0) {
@@ -59,6 +62,7 @@ void Server::initServer() {
     std::cout << "Server running on port " << _port << std::endl;
 }
 
+// Atiende eventos de red y coordina lectura, escritura y desconexiones.
 void Server::run() {
     while (true) {
         if (poll(&_fds[0], _fds.size(), -1) < 0) {
@@ -112,6 +116,7 @@ void Server::run() {
     }
 }
 
+// Acepta un cliente, lo pone en no bloqueante y lo agrega a estructuras.
 void Server::acceptClient() {
     sockaddr_in clientAddr;
     socklen_t len = sizeof(clientAddr);
@@ -137,6 +142,7 @@ void Server::acceptClient() {
     std::cout << "New client: " << clientFd << std::endl;
 }
 
+// Recibe datos, acumula en buffer y procesa cada linea completa IRC.
 void Server::handleClientRead(size_t i) {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
@@ -171,6 +177,7 @@ void Server::handleClientRead(size_t i) {
     }
 }
 
+// Envía datos pendientes del buffer de salida y maneja envio parcial.
 void Server::handleClientWrite(size_t i) {
     Client* client = getClientByFd(_fds[i].fd);
     if (!client) {
@@ -204,6 +211,7 @@ void Server::handleClientWrite(size_t i) {
         disconnectClient(i);
 }
 
+// Elimina cliente por fd, cierra socket y borra entrada de poll.
 void Server::disconnectClient(size_t i) {
     int fd = _fds[i].fd;
 
@@ -221,6 +229,7 @@ void Server::disconnectClient(size_t i) {
     std::cout << "Disconnected: " << fd << std::endl;
 }
 
+// Busca un cliente por fd en la lista y devuelve puntero o NULL.
 Client* Server::getClientByFd(int fd) {
     for (size_t i = 0; i < _clients.size(); i++) {
         if (_clients[i]->getFd() == fd)

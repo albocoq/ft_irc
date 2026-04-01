@@ -19,17 +19,26 @@ private:
     CommandHandler _handler;
 
 public:
+    // Crea el servidor con puerto y password iniciales.
     Server(int port, const std::string& password);
+    // Libera socket del servidor y clientes conectados.
     ~Server();
 
+    // Inicializa socket, bind, listen y poll del servidor.
     void initServer();
+    // Ejecuta el bucle principal de eventos con poll.
     void run();
 
 private:
+    // Acepta una nueva conexion y la agrega a listas internas.
     void acceptClient();
+    // Lee datos del cliente, parsea lineas y ejecuta comandos.
     void handleClientRead(size_t i);
+    // Escribe buffer pendiente al cliente y gestiona desconexion.
     void handleClientWrite(size_t i);
+    // Desconecta y elimina un cliente por indice de pollfd.
     void disconnectClient(size_t i);
+    // Busca y devuelve el cliente asociado a un file descriptor.
     Client* getClientByFd(int fd);
 };
 
