@@ -1,6 +1,14 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <iostream>
+#include <cstring>
+#include <cerrno>
+#include <cstdlib>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <sys/socket.h>
 #include <vector>
 #include <string>
 #include <poll.h>
@@ -29,6 +37,7 @@ private:
     void acceptClient();
     void handleClientRead(size_t i);
     void handleClientWrite(size_t i);
+    void flushPendingWrites();
     void disconnectClient(size_t i);
     Client* getClientByFd(int fd);
 };
