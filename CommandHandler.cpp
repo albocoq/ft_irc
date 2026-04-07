@@ -24,14 +24,46 @@ CommandHandler::~CommandHandler() {
     _channels.clear();
 }
 
+std::string CommandHandler::colorMessage(const std::string& message, const std::string& color) const {
+    std::string ansiColor;
+
+    if (color == "04")
+        ansiColor = "\033[31m";
+    else if (color == "03")
+        ansiColor = "\033[32m";
+    else if (color == "02")
+        ansiColor = "\033[34m";
+    else
+        return message;
+
+    return ansiColor + message + "\033[0m";
+}
+
+std::string CommandHandler::redMessage(const std::string& message) const {
+    return colorMessage(message, "04");
+}
+
+std::string CommandHandler::greenMessage(const std::string& message) const {
+    return colorMessage(message, "03");
+}
+
+std::string CommandHandler::blueMessage(const std::string& message) const {
+    return colorMessage(message, "02");
+}
+
 void CommandHandler::execute(Client& client, const Message& message, std::vector<Client*>& annular) {
     std::string CommandWord = message.getCommand();
+
+    if (CommandWord == "CAP") {
+        client.setUseAnsiColors(false);
+        return;
+    }
 
     std::map<std::string, CommandFn>::iterator it = _commands.find(CommandWord);
     if (it != _commands.end())
         (this->*(it->second))(client, message, annular);
     else
-        client.appendWriteBuffer(":ircserv 421 " + client.getNickname() + " " + CommandWord + " :Unknown command");
+        client.appendWriteBuffer(redMessage(":ircserv 421 " + client.getNickname() + " " + CommandWord + " :Unknown command"));
 }
 
 void CommandHandler::checkRegistration(Client& client) {
@@ -40,6 +72,6 @@ void CommandHandler::checkRegistration(Client& client) {
 
     if (client.hasUser() && client.hasNickname() && client.hasPassed()) {
         client.setRegistered(true);
-        client.appendWriteBuffer(":ircserv 001 " + client.getNickname() + " :Welcome to the ft_irc network!");
+        client.appendWriteBuffer(greenMessage(":ircserv 001 " + client.getNickname() + " :Welcome to the ft_irc network!"));
     }
 }

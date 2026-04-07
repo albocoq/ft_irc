@@ -1,13 +1,5 @@
 #include "Server.hpp"
 #include "Message.hpp"
-#include <iostream>
-#include <cstring>
-#include <cerrno>
-#include <cstdlib>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <sys/socket.h>
 
 Server::Server(int port, const std::string& password)
     : _port(port), _password(password), _serverFd(-1), _handler(password) {}
@@ -30,9 +22,9 @@ void Server::initServer() {
     int opt = 1;
     setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    int flags = fcntl(_serverFd, F_GETFL, 0);
+    int flags = fcntl(_serverFd, F_GETFL, 0);// tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
     if (flags >= 0)
-        fcntl(_serverFd, F_SETFL, flags | O_NONBLOCK);
+        fcntl(_serverFd, F_SETFL, flags | O_NONBLOCK); // tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
 
     sockaddr_in addr;
     std::memset(&addr, 0, sizeof(addr));
@@ -109,6 +101,8 @@ void Server::run() {
 
             i++;
         }
+
+        flushPendingWrites();
     }
 }
 
@@ -120,9 +114,9 @@ void Server::acceptClient() {
     if (clientFd < 0)
         return;
 
-    int flags = fcntl(clientFd, F_GETFL, 0);
+    int flags = fcntl(clientFd, F_GETFL, 0); // tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
     if (flags >= 0)
-        fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+        fcntl(clientFd, F_SETFL, flags | O_NONBLOCK); // tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
 
     std::string ip = inet_ntoa(clientAddr.sin_addr);
 
@@ -202,6 +196,29 @@ void Server::handleClientWrite(size_t i) {
 
     if (client->isToBeDisconnected() && client->getWriteBuffer().empty())
         disconnectClient(i);
+}
+
+void Server::flushPendingWrites() {
+    for (size_t i = 0; i < _fds.size(); ) {
+        int fd = _fds[i].fd;
+
+        if (fd == _serverFd) {
+            i++;
+            continue;
+        }
+
+        Client* client = getClientByFd(fd);
+        if (!client || client->getWriteBuffer().empty()) {
+            i++;
+            continue;
+        }
+
+        handleClientWrite(i);
+        if (i >= _fds.size() || _fds[i].fd != fd)
+            continue;
+
+        i++;
+    }
 }
 
 void Server::disconnectClient(size_t i) {

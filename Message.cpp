@@ -1,4 +1,5 @@
 #include "Message.hpp"
+#include <iostream>
 
 // Prefix Command Params
 // :Zelda PRIVMSG Link :Salut, comment ça va ?
