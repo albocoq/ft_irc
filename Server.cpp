@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "Message.hpp"
+#include <csignal>
 
 Server::Server(int port, const std::string& password)
     : _port(port), _password(password), _serverFd(-1), _handler(password) {}
@@ -13,6 +14,8 @@ Server::~Server() {
 }
 
 void Server::initServer() {
+    signal(SIGPIPE, SIG_IGN);
+    
     _serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_serverFd < 0) {
         std::cerr << "Socket error\n";
