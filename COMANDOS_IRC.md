@@ -102,6 +102,14 @@ En IRC, el canal se crea automaticamente cuando el primer usuario hace `JOIN`.
 
 Inicia primero el servidor y luego conecta las terminales de usuarios.
 
+### Terminal A/B/C (Clientes)
+
+Abre una conexion al servidor con `nc` antes de escribir los comandos IRC:
+
+```bash
+nc localhost 6667
+```
+
 ### Terminal A (Ana)
 
 ```irc

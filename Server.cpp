@@ -169,8 +169,8 @@ void Server::acceptClient() {
     p.events = POLLIN;
     _fds.push_back(p);
 
-    // Informa por consola la conexion entrante aceptada.
-    std::cout << "New client: " << clientFd << std::endl;
+    // Informa cantidad actual de clientes conectados (1, 2, 3...).
+    std::cout << "New client: " << _clients.size() << std::endl;
 }
 
 // Recibe datos, acumula en buffer y procesa cada linea completa IRC.
