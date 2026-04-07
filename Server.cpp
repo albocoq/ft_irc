@@ -1,13 +1,7 @@
 #include "Server.hpp"
 #include "Message.hpp"
-#include <iostream>
-#include <cstring>
-#include <cerrno>
-#include <cstdlib>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <sys/socket.h>
+#include "Client.hpp"
+
 
 // Inicializa atributos base del servidor y el manejador de comandos.
 Server::Server(int port, const std::string& password)
@@ -39,10 +33,9 @@ void Server::initServer() {
     int opt = 1;
     setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
-    // Obtiene flags actuales del socket para añadir modo no bloqueante.
-    int flags = fcntl(_serverFd, F_GETFL, 0);
+    int flags = fcntl(_serverFd, F_GETFL, 0);// tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
     if (flags >= 0)
-        fcntl(_serverFd, F_SETFL, flags | O_NONBLOCK);
+        fcntl(_serverFd, F_SETFL, flags | O_NONBLOCK); // tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
 
     // Declara y limpia la estructura de direccion del servidor.
     sockaddr_in addr;
@@ -141,6 +134,8 @@ void Server::run() {
             // Avanza al siguiente fd cuando este no fue eliminado.
             i++;
         }
+
+        flushPendingWrites();
     }
 }
 
@@ -157,10 +152,9 @@ void Server::acceptClient() {
     if (clientFd < 0)
         return;
 
-    // Obtiene flags y activa modo no bloqueante en el cliente.
-    int flags = fcntl(clientFd, F_GETFL, 0);
+    int flags = fcntl(clientFd, F_GETFL, 0); // tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
     if (flags >= 0)
-        fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+        fcntl(clientFd, F_SETFL, flags | O_NONBLOCK); // tiene que ser asi segun eval hub fcntl(fd, F_SETFL, O_NONBLOCK)
 
     // Convierte IP binaria del cliente a string legible.
     std::string ip = inet_ntoa(clientAddr.sin_addr);
@@ -266,7 +260,29 @@ void Server::handleClientWrite(size_t i) {
         disconnectClient(i);
 }
 
-// Elimina cliente por fd, cierra socket y borra entrada de poll.
+void Server::flushPendingWrites() {
+    for (size_t i = 0; i < _fds.size(); ) {
+        int fd = _fds[i].fd;
+
+        if (fd == _serverFd) {
+            i++;
+            continue;
+        }
+
+        Client* client = getClientByFd(fd);
+        if (!client || client->getWriteBuffer().empty()) {
+            i++;
+            continue;
+        }
+
+        handleClientWrite(i);
+        if (i >= _fds.size() || _fds[i].fd != fd)
+            continue;
+
+        i++;
+    }
+}
+
 void Server::disconnectClient(size_t i) {
     // Guarda el fd antes de borrar la entrada en _fds.
     int fd = _fds[i].fd;

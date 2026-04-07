@@ -1,6 +1,14 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#include <iostream>
+#include <cstring>
+#include <cerrno>
+#include <cstdlib>
+#include <unistd.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <sys/socket.h>
 #include <vector>
 #include <string>
 #include <poll.h>
@@ -36,7 +44,7 @@ private:
     void handleClientRead(size_t i);
     // Escribe buffer pendiente al cliente y gestiona desconexion.
     void handleClientWrite(size_t i);
-    // Desconecta y elimina un cliente por indice de pollfd.
+    void flushPendingWrites();
     void disconnectClient(size_t i);
     // Busca y devuelve el cliente asociado a un file descriptor.
     Client* getClientByFd(int fd);
