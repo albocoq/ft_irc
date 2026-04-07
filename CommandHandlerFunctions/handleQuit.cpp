@@ -37,6 +37,6 @@ void CommandHandler::handleQuit(Client& client, const Message& message, std::vec
         }
     }
     
-    client.appendWriteBuffer("ERROR :Closing Link: " + client.getIp() + " (Quit)");
+    client.appendWriteBuffer("Closing Link: " + client.getIp() + " (Quit)");
     client.setToBeDisconnected(true);
 }

@@ -3,7 +3,7 @@
 void CommandHandler::handlePrivmsg(Client& client, const Message& message, std::vector<Client*>& annular) {
     std::vector<std::string> params = message.getParameters();
 
-    if (params.size() < 2) {
+    if (params.size() != 2) {
         client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " privmsg :Not enough parameters"));
         return;
     }

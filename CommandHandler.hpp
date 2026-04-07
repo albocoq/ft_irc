@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <unistd.h>
 #include <iostream>
 #include "Client.hpp"
 #include "Message.hpp"

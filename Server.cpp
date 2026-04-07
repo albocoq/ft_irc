@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "Message.hpp"
+#include <csignal>
 #include "Client.hpp"
 
 
@@ -21,7 +22,6 @@ Server::~Server() {
 
 // Configura socket no bloqueante, bind/listen y registra fd en poll.
 void Server::initServer() {
-    // Crea socket TCP IPv4 para aceptar conexiones entrantes.
     _serverFd = socket(AF_INET, SOCK_STREAM, 0);
     // Si falla la creacion del socket, informa y termina el proceso.
     if (_serverFd < 0) {
@@ -162,6 +162,7 @@ void Server::acceptClient() {
     // Crea objeto Client y lo guarda en la lista de clientes.
     Client* client = new Client(clientFd, ip);
     _clients.push_back(client);
+    client->appendWriteBuffer("You need to register with PASS, NICK and USER commands.");
 
     // Registra su fd en poll para detectar lectura inicial.
     pollfd p;
