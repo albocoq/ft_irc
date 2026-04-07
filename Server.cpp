@@ -122,6 +122,7 @@ void Server::acceptClient() {
 
     Client* client = new Client(clientFd, ip);
     _clients.push_back(client);
+    client->appendWriteBuffer("You need to register with PASS, NICK and USER commands.");
 
     pollfd p;
     p.fd = clientFd;
