@@ -22,6 +22,7 @@ class CommandHandler {
         std::string greenMessage(const std::string& message) const;
         std::string blueMessage(const std::string& message) const;
 
+
         void handlePassword(Client& client, const Message& message, std::vector<Client*>& annular);
         void handlePseudo(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleUser(Client& client, const Message& message, std::vector<Client*>& annular);

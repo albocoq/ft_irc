@@ -5,6 +5,7 @@
 
 class Client {
     private:
+        int _id;
         int _fd;
         std::string _ip;
         std::string _readBuffer;
@@ -20,8 +21,9 @@ class Client {
         bool _useAnsiColors;
 
     public:
-        Client(int fd, std::string ip);
+        Client(int id, int fd, std::string ip);
         ~Client();
+        int getId() const;
         int getFd() const;
         std::string getIp() const;
         std::string getReadBuffer() const;
