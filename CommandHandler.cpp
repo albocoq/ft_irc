@@ -9,6 +9,7 @@ CommandHandler::CommandHandler(std::string serverPassword): _serverPassword(serv
     _commands.insert(std::make_pair("QUIT", &CommandHandler::handleQuit));
     _commands.insert(std::make_pair("JOIN", &CommandHandler::handleJoin));
     _commands.insert(std::make_pair("PART", &CommandHandler::handlePart));
+    _commands.insert(std::make_pair("WHO", &CommandHandler::handleWho));
 }
 
 CommandHandler::~CommandHandler() {

@@ -19,7 +19,8 @@ SRCS = main.cpp \
        CommandHandlerFunctions/handlePrivmsg.cpp \
        CommandHandlerFunctions/handlePseudo.cpp \
        CommandHandlerFunctions/handleQuit.cpp \
-       CommandHandlerFunctions/handleUser.cpp
+       CommandHandlerFunctions/handleUser.cpp \
+       CommandHandlerFunctions/handleWho.cpp
 
 OBJS = $(addprefix $(OBJ_DIR)/,$(SRCS:.cpp=.o))
 
