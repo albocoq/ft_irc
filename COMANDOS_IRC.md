@@ -75,8 +75,8 @@ Cuando completas `PASS + NICK + USER`, el servidor responde con `001 Welcome`.
 
 ### CAP
 - Uso: `CAP ...`
-- Ejemplo: `CAP LS 302`
-- Descripcion: en esta implementacion se usa para desactivar colores ANSI en respuestas.
+- Ejemplo: `CAP`
+- Descripcion: en esta implementacion se usa para desactivar/activar colores ANSI en respuestas.
 
 ## 4) Flujo de ejemplo completo
 
