@@ -7,7 +7,7 @@
 // Inicializa atributos base del servidor y el manejador de comandos.
 Server::Server(int port, const std::string& password)
     // Guarda puerto, password y estado inicial del socket; crea CommandHandler.
-    : _port(port), _password(password), _serverFd(-1), _handler(password) {}
+    : _port(port), _password(password), _serverFd(-1), _nextClientId(1), _handler(password) {}
 
 // Cierra recursos abiertos del servidor y libera clientes en memoria.
 Server::~Server() {
@@ -158,9 +158,10 @@ void Server::acceptClient() {
 
     // Convierte IP binaria del cliente a string legible.
     std::string ip = inet_ntoa(clientAddr.sin_addr);
+    int clientId = _nextClientId++;
 
     // Crea objeto Client y lo guarda en la lista de clientes.
-    Client* client = new Client(clientFd, ip);
+    Client* client = new Client(clientId, clientFd, ip);
     _clients.push_back(client);
     client->appendWriteBuffer("You need to register with PASS, NICK and USER commands.");
 
@@ -170,8 +171,8 @@ void Server::acceptClient() {
     p.events = POLLIN;
     _fds.push_back(p);
 
-    // Informa cantidad actual de clientes conectados (1, 2, 3...).
-    std::cout << "New client: " << _clients.size() << std::endl;
+    // Informa ID estable del cliente y su fd real de socket.
+    std::cout << "New client: " << clientId  << std::endl;
 }
 
 // Recibe datos, acumula en buffer y procesa cada linea completa IRC.
@@ -287,10 +288,12 @@ void Server::flushPendingWrites() {
 void Server::disconnectClient(size_t i) {
     // Guarda el fd antes de borrar la entrada en _fds.
     int fd = _fds[i].fd;
+    int disconnectedClientId = -1;
 
     // Busca y elimina el objeto Client asociado al fd.
     for (size_t j = 0; j < _clients.size(); j++) {
         if (_clients[j]->getFd() == fd) {
+            disconnectedClientId = _clients[j]->getId();
             delete _clients[j];
             _clients.erase(_clients.begin() + j);
             break;
@@ -302,7 +305,10 @@ void Server::disconnectClient(size_t i) {
     _fds.erase(_fds.begin() + i);
 
     // Registra por consola que el cliente fue desconectado.
-    std::cout << "Disconnected: " << fd << std::endl;
+    if (disconnectedClientId != -1)
+        std::cout << "Disconnected: " << disconnectedClientId << " (fd " << fd << ")" << std::endl;
+    else
+        std::cout << "Disconnected fd: " << fd << std::endl;
 }
 
 // Busca un cliente por fd en la lista y devuelve puntero o NULL.

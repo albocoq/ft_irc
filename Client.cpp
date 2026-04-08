@@ -1,6 +1,6 @@
 #include "Client.hpp"
 
-Client::Client(int fd, std::string ip) : _fd(fd), _ip(ip) {
+Client::Client(int id, int fd, std::string ip) : _id(id), _fd(fd), _ip(ip) {
     _isRegistered = false;
     _hasPassed = false;
     _hasNickname = false;
@@ -13,6 +13,10 @@ Client::Client(int fd, std::string ip) : _fd(fd), _ip(ip) {
 }
 
 Client::~Client() {}
+
+int Client::getId() const {
+    return _id;
+}
 
 int Client::getFd() const {
     return _fd;

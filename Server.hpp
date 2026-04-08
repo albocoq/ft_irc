@@ -20,6 +20,7 @@ private:
     int _port;
     std::string _password;
     int _serverFd;
+    int _nextClientId;
 
     std::vector<pollfd> _fds;
     std::vector<Client*> _clients;
