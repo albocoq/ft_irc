@@ -56,7 +56,7 @@ void CommandHandler::execute(Client& client, const Message& message, std::vector
     std::string CommandWord = message.getCommand();
 
     if (CommandWord == "CAP") {
-        client.setUseAnsiColors(false);
+        client.setUseAnsiColors(!client.useAnsiColors());
         return;
     }
 
