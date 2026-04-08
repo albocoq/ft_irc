@@ -4,7 +4,7 @@ void CommandHandler::handleUser(Client& client, const Message& message, std::vec
     (void)annular;
     std::vector<std::string> params = message.getParameters();
 
-    if (params.size() >= 1) {
+    if (params.size() == 4) {
         client.setUsername(params.front());
         client.setRealname(params.back());
         client.setHasUser(true);
