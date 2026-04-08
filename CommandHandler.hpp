@@ -31,6 +31,7 @@ class CommandHandler {
         void handleQuit(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleJoin(Client& client, const Message& message, std::vector<Client*>& annular);
         void handlePart(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleWho(Client& client, const Message& message, std::vector<Client*>& annular);
 
         void checkRegistration(Client& client);
 

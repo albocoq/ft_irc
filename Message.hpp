@@ -13,9 +13,11 @@ class Message {
     public:
         Message(const std::string& rawLine);
         ~Message();
+
         std::string getPrefix() const;
         std::string getCommand() const;
         std::vector<std::string> getParameters() const;
+
         void setPrefix(const std::string& prefix);
         void setCommand(const std::string& command);
         void setParameters(const std::string& parameters);
