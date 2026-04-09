@@ -1,10 +1,11 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
 
 void CommandHandler::handlePart(Client& client, const Message& message, std::vector<Client*>& annular) {
+    (void)annular;
     std::vector<std::string> params = message.getParameters();
 
     if (params.size() < 1) {
-        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " part :Not enough parameters");
+        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " part :Not enough parameters"));
         return;
     }
 
@@ -21,11 +22,11 @@ void CommandHandler::handlePart(Client& client, const Message& message, std::vec
         currentChannel = it->second;
         std::map<int, Client*>::const_iterator itc = currentChannel->getAllChanel().find(client.getFd());
         if (itc == currentChannel->getAllChanel().end()) {
-            client.appendWriteBuffer(":ircserv 442 " + client.getNickname() + " " + channelName + "  :You're not on that channel");
+            client.appendWriteBuffer(redMessage(":ircserv 442 " + client.getNickname() + " " + channelName + "  :You're not on that channel"));
             return;
         }
     } else {
-        client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + channelName + "  :No such channel");
+        client.appendWriteBuffer(redMessage(":ircserv 403 " + client.getNickname() + " " + channelName + "  :No such channel"));
         return;
     }
 
@@ -33,7 +34,7 @@ void CommandHandler::handlePart(Client& client, const Message& message, std::vec
     std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
 
     while (firstClient != lastClient) {
-        firstClient->second->appendWriteBuffer(":" + client.getNickname() + " PART " + channelName + (!partMsg.empty() ? " :" + partMsg : ""));
+        firstClient->second->appendWriteBuffer(greenMessage(":" + client.getNickname() + " PART " + channelName + (!partMsg.empty() ? " :" + partMsg : "")));
         
         firstClient++;
     }

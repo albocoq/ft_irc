@@ -1,17 +1,22 @@
 #include "Client.hpp"
 
-Client::Client(int fd, std::string ip) : _fd(fd), _ip(ip) {
-	_isRegistered = false;
-	_hasPassed = false;
-	_hasNickname = false;
-	_hasUser = false;
-	_toDisconnected = false;
+Client::Client(int id, int fd, std::string ip) : _id(id), _fd(fd), _ip(ip) {
+    _isRegistered = false;
+    _hasPassed = false;
+    _hasNickname = false;
+    _hasUser = false;
+    _toDisconnected = false;
+    _useAnsiColors = true;
 
 	_readBuffer.clear();
 	_writeBuffer.clear();
 }
 
 Client::~Client() {}
+
+int Client::getId() const {
+    return _id;
+}
 
 int Client::getFd() const {
 	return _fd;
@@ -61,6 +66,10 @@ bool Client::isToBeDisconnected() const {
 	return _toDisconnected;
 }
 
+bool Client::useAnsiColors() const {
+    return _useAnsiColors;
+}
+
 void Client::setReadBuffer(const std::string& buffer) {
 	_readBuffer = buffer;
 }
@@ -101,6 +110,10 @@ void Client::setToBeDisconnected(bool status) {
 	_toDisconnected = status;
 }
 
+void Client::setUseAnsiColors(bool status) {
+    _useAnsiColors = status;
+}
+
 std::string Client::extractLine() {
 	size_t pos = _readBuffer.find("\r\n");
 
@@ -118,10 +131,32 @@ void Client::appendReadBuffer(std::string data) {
 	_readBuffer.append(data);
 }
 
+bool Client::hasCompleteLine() const {
+    return _readBuffer.find("\r\n") != std::string::npos;
+}
+
 void Client::appendWriteBuffer(std::string message) {
-	
-	if (message.length() >= 2 && message[message.length() - 1] != '\n' && message[message.length() - 2] != '\r')
-		message.append("\r\n");
-	
-	_writeBuffer.append(message);
+    if (!_useAnsiColors) {
+        std::string cleaned;
+        cleaned.reserve(message.size());
+
+        for (size_t i = 0; i < message.size(); ) {
+            if (message[i] == '\033' && i + 1 < message.size() && message[i + 1] == '[') {
+                i += 2;
+                while (i < message.size() && message[i] != 'm')
+                    i++;
+                if (i < message.size())
+                    i++;
+                continue;
+            }
+            cleaned.push_back(message[i]);
+            i++;
+        }
+        message = cleaned;
+    }
+
+    if (message.length() < 2 || message.substr(message.length() - 2) != "\r\n")
+        message.append("\r\n");
+    
+    _writeBuffer.append(message);
 }

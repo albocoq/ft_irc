@@ -1,6 +1,7 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
 
 void CommandHandler::handleQuit(Client& client, const Message& message, std::vector<Client*>& annular) {
+    (void)annular;
     std::vector<std::string> params = message.getParameters();
     std::string quitMsg;
 
@@ -36,6 +37,6 @@ void CommandHandler::handleQuit(Client& client, const Message& message, std::vec
         }
     }
     
-    client.appendWriteBuffer("ERROR :Closing Link: " + client.getIp() + " (Quit)");
+    client.appendWriteBuffer("Closing Link: " + client.getIp() + " (Quit)");
     client.setToBeDisconnected(true);
 }

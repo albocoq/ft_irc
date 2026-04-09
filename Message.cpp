@@ -1,7 +1,5 @@
 #include "Message.hpp"
-
-// Prefix Command Params
-// :Zelda PRIVMSG Link :Salut, comment ça va ?
+#include <iostream>
 
 Message::Message(const std::string& rawLine) {
 	std::string copyRawLine = rawLine;

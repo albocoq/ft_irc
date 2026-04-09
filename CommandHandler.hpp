@@ -4,6 +4,7 @@
 #include <map>
 #include <vector>
 #include <string>
+#include <unistd.h>
 #include <iostream>
 #include "Client.hpp"
 #include "Message.hpp"
@@ -15,6 +16,12 @@ class CommandHandler {
         std::map<std::string, CommandFn> _commands;
         std::string _serverPassword;
         std::map<std::string, Channel*> _channels;
+
+        std::string colorMessage(const std::string& message, const std::string& color) const;
+        std::string redMessage(const std::string& message) const;
+        std::string greenMessage(const std::string& message) const;
+        std::string blueMessage(const std::string& message) const;
+
 
         void handlePassword(Client& client, const Message& message, std::vector<Client*>& annular);
         void handlePseudo(Client& client, const Message& message, std::vector<Client*>& annular);
