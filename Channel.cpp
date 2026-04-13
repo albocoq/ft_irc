@@ -24,7 +24,7 @@ bool Channel::isClient(int fd) const {
 	return _clients.find(fd) != _clients.end();
 }
 
-std::map<int, Client*> Channel::getAllChanel() const {
+const std::map<int, Client*>& Channel::getAllChanel() const {
 	return _clients;
 }
 
