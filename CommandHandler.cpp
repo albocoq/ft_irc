@@ -10,6 +10,10 @@ CommandHandler::CommandHandler(std::string serverPassword): _serverPassword(serv
     _commands.insert(std::make_pair("JOIN", &CommandHandler::handleJoin));
     _commands.insert(std::make_pair("PART", &CommandHandler::handlePart));
     _commands.insert(std::make_pair("WHO", &CommandHandler::handleWho));
+    _commands.insert(std::make_pair("TOPIC", &CommandHandler::handleTopic));
+    _commands.insert(std::make_pair("KICK", &CommandHandler::handleKick));
+    _commands.insert(std::make_pair("INVITE", &CommandHandler::handleInvite));
+    _commands.insert(std::make_pair("MODE", &CommandHandler::handleMode));
 }
 
 CommandHandler::~CommandHandler() {

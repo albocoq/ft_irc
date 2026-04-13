@@ -1,7 +1,9 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
 
 void CommandHandler::handleKick(Client& client, const Message& message, std::vector<Client*>& annular) {
+    (void)annular;
     std::vector<std::string> params = message.getParameters();
+
     if (params.size() < 2) {
         client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " KICK :Not enough parameters");
         return;

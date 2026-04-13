@@ -1,10 +1,12 @@
-#include "Channel.hpp"
-#include "Client.hpp"
+#include "../Channel.hpp"
+#include "../Client.hpp"
 #include <vector>
 
 void handleModeOperator(Channel* channel, bool set, Client& client, const std::string& targetNick, std::vector<Client*>& annular) {
+    (void)annular;
     Client* target = NULL;
     std::map<int, Client*> members = channel->getAllChanel();
+    
     for (std::map<int, Client*>::iterator mit = members.begin(); mit != members.end(); ++mit) {
         if (mit->second->getNickname() == targetNick) {
             target = mit->second;

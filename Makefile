@@ -20,7 +20,11 @@ SRCS = main.cpp \
        CommandHandlerFunctions/handlePseudo.cpp \
        CommandHandlerFunctions/handleQuit.cpp \
        CommandHandlerFunctions/handleUser.cpp \
-       CommandHandlerFunctions/handleWho.cpp
+       CommandHandlerFunctions/handleWho.cpp \
+       CommandHandlerFunctions/handleTopic.cpp \
+       CommandHandlerFunctions/handleKick.cpp \
+       CommandHandlerFunctions/handleInvite.cpp \
+       CommandHandlerFunctions/handleMode.cpp
 
 OBJS = $(addprefix $(OBJ_DIR)/,$(SRCS:.cpp=.o))
 

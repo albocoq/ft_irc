@@ -1,13 +1,15 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
+#include <cstdlib>
+#include "handleModeInviteOnly.cpp"
+#include "handleModeTopicRestricted.cpp"
+#include "handleModeKey.cpp"
+#include "handleModeOperator.cpp"
+#include "handleModeLimit.cpp"
 
-void handleModeInviteOnly(Channel* channel, bool set, Client& client);
-void handleModeTopicRestricted(Channel* channel, bool set, Client& client);
-void handleModeKey(Channel* channel, bool set, Client& client, const std::string& key);
-void handleModeOperator(Channel* channel, bool set, Client& client, const std::string& targetNick, std::vector<Client*>& annular);
-void handleModeLimit(Channel* channel, bool set, Client& client, int limit);
 
 void CommandHandler::handleMode(Client& client, const Message& message, std::vector<Client*>& annular) {
     std::vector<std::string> params = message.getParameters();
+
     if (params.size() < 2) {
         client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " MODE :Not enough parameters");
         return;
@@ -21,6 +23,7 @@ void CommandHandler::handleMode(Client& client, const Message& message, std::vec
         client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel");
         return;
     }
+
     Channel* channel = it->second;
     if (!channel->isOperator(&client)) {
         client.appendWriteBuffer(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator");
@@ -30,8 +33,11 @@ void CommandHandler::handleMode(Client& client, const Message& message, std::vec
     size_t paramIdx = 0;
     for (size_t i = 0; i < modes.size(); ++i) {
         char mode = modes[i];
+        std::cout << "Processing mode: " << (set ? "+" : "-") << mode << std::endl;
         if (mode == '+') { set = true; continue; }
         if (mode == '-') { set = false; continue; }
+        std::cout << "other mode: " << (set ? "+" : "-") << mode << std::endl;
+
         switch (mode) {
             case 'i':
                 handleModeInviteOnly(channel, set, client);
@@ -51,7 +57,7 @@ void CommandHandler::handleMode(Client& client, const Message& message, std::vec
                 break;
             case 'l':
                 if (set && paramIdx < modeParams.size())
-                    handleModeLimit(channel, set, client, atoi(modeParams[paramIdx++].c_str()));
+                    handleModeLimit(channel, set, client, std::atoi(modeParams[paramIdx++].c_str()));
                 else if (!set)
                     handleModeLimit(channel, set, client, -1);
                 break;

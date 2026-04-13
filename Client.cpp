@@ -115,14 +115,16 @@ void Client::setUseAnsiColors(bool status) {
 }
 
 std::string Client::extractLine() {
-	size_t pos = _readBuffer.find("\r\n");
+	size_t pos = _readBuffer.find('\n');
 
 	if (pos == std::string::npos)
 		return "";
 
 	std::string line = _readBuffer.substr(0, pos);
+	if (!line.empty() && line[line.length() - 1] == '\r')
+		line.erase(line.length() - 1);
 
-	_readBuffer.erase(0, pos + 2);
+	_readBuffer.erase(0, pos + 1);
 	
 	return line;
 }
@@ -132,7 +134,7 @@ void Client::appendReadBuffer(std::string data) {
 }
 
 bool Client::hasCompleteLine() const {
-    return _readBuffer.find("\r\n") != std::string::npos;
+	return _readBuffer.find('\n') != std::string::npos;
 }
 
 void Client::appendWriteBuffer(std::string message) {
