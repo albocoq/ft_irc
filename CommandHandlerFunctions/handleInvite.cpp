@@ -1,4 +1,4 @@
-#include "CommandHandler.hpp"
+#include "../CommandHandler.hpp"
 
 void CommandHandler::handleInvite(Client& client, const Message& message, std::vector<Client*>& annular) {
     std::vector<std::string> params = message.getParameters();

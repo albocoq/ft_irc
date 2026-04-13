@@ -20,6 +20,7 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
     } else {
         currentChannel = new Channel(channelName);
 
+        currentChannel->addOperator(&client);
         currentChannel->addClient(client);
         _channels.insert(std::make_pair(channelName, currentChannel));
     }

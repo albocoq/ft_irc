@@ -1,5 +1,5 @@
-#include "Channel.hpp"
-#include "Client.hpp"
+#include "../Channel.hpp"
+#include "../Client.hpp"
 
 void handleModeKey(Channel* channel, bool set, Client& client, const std::string& key) {
     if (set) {
