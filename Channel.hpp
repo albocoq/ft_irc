@@ -16,7 +16,7 @@ public:
 	void addClient(Client& client);
 	void removeClient(int fd);
 	bool isClient(int fd) const;
-	std::map<int, Client*> getAllChanel() const;
+	const std::map<int, Client*>& getAllChanel() const;
 
 	void addOperator(Client *client);
 	void removeOperator(Client *client);

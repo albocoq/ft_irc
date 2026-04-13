@@ -24,8 +24,9 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
         _channels.insert(std::make_pair(channelName, currentChannel));
     }
 
-    std::map<int, Client*>::const_iterator firstClient = currentChannel->getAllChanel().begin();
-    std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
+    std::map<int, Client*> allClients = currentChannel->getAllChanel();
+    std::map<int, Client*>::const_iterator firstClient = allClients.begin();
+    std::map<int, Client*>::const_iterator lastClient = allClients.end();
     std::string listNicks = "";
 
     while (firstClient != lastClient) {
