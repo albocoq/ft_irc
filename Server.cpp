@@ -126,7 +126,7 @@ void Server::acceptClient() {
 
     Client* client = new Client(clientId, clientFd, ip);
     _clients.push_back(client);
-    client->appendWriteBuffer("\033[32m:ircserv NOTICE * :You need to register with PASS, NICK and USER commands.\033[0m");
+    client->appendWriteBuffer(":ircserv NOTICE * :You need to register with PASS, NICK and USER commands.");
 
     pollfd p;
     p.fd = clientFd;

@@ -1,12 +1,11 @@
-#include "../Channel.hpp"
-#include "../Client.hpp"
+#include "../CommandHandler.hpp"
 
-void handleModeKey(Channel* channel, bool set, Client& client, const std::string& key) {
+void CommandHandler::handleModeKey(Channel* channel, bool set, Client& client, const std::string& key) {
     if (set) {
         channel->key = key;
-        client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + " +k\033[0m");
+        client.appendWriteBuffer(greenMessage(":ircserv MODE " + channel->getNameChannel() + " +k"));
     } else {
         channel->key.clear();
-        client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + " -k\033[0m");
+        client.appendWriteBuffer(greenMessage(":ircserv MODE " + channel->getNameChannel() + " -k"));
     }
 }

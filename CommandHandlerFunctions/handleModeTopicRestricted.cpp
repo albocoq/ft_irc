@@ -1,7 +1,6 @@
-#include "../Channel.hpp"
-#include "../Client.hpp"
+#include "../CommandHandler.hpp"
 
-void handleModeTopicRestricted(Channel* channel, bool set, Client& client) {
+void CommandHandler::handleModeTopicRestricted(Channel* channel, bool set, Client& client) {
     channel->topicRestricted = set;
-    client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + (set ? " +t" : " -t") + "\033[0m");
+    client.appendWriteBuffer(greenMessage(":ircserv MODE " + channel->getNameChannel() + (set ? " +t" : " -t")));
 }

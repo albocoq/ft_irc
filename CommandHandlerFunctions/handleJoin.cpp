@@ -23,7 +23,7 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
 		{
 			if (currentChannel->userLimit <= (int)currentChannel->getAllChanel().size())
 			{
-				client.appendWriteBuffer(redMessage (":ircserv 471 " + client.getNickname() + " " + currentChannel->getNameChannel() + " :Cannot join channel (+l)"));
+				client.appendWriteBuffer(redMessage(":ircserv 471 " + client.getNickname() + " " + currentChannel->getNameChannel() + " :Cannot join channel (+l)"));
 				return ;
 			}
 		}

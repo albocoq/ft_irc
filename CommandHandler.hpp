@@ -35,6 +35,11 @@ class CommandHandler {
         void handleTopic(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleInvite(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleMode(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleModeInviteOnly(Channel* channel, bool set, Client& client);
+        void handleModeTopicRestricted(Channel* channel, bool set, Client& client);
+        void handleModeKey(Channel* channel, bool set, Client& client, const std::string& key);
+        void handleModeOperator(Channel* channel, bool set, Client& client, const std::string& targetNick, std::vector<Client*>& annular);
+        void handleModeLimit(Channel* channel, bool set, Client& client, int limit);
         void handleWho(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleNames(Client& client, const Message& message, std::vector<Client*>& annular);
 

@@ -1,8 +1,7 @@
-#include "../Channel.hpp"
-#include "../Client.hpp"
+#include "../CommandHandler.hpp"
 #include <vector>
 
-void handleModeOperator(Channel* channel, bool set, Client& client, const std::string& targetNick, std::vector<Client*>& annular) {
+void CommandHandler::handleModeOperator(Channel* channel, bool set, Client& client, const std::string& targetNick, std::vector<Client*>& annular) {
     (void)annular;
     Client* target = NULL;
     std::map<int, Client*> members = channel->getAllChanel();
@@ -14,14 +13,14 @@ void handleModeOperator(Channel* channel, bool set, Client& client, const std::s
         }
     }
     if (!target) {
-        client.appendWriteBuffer("\033[31m:ircserv 441 " + client.getNickname() + " " + targetNick + " " + channel->getNameChannel() + " :They aren't on that channel\033[0m");
+        client.appendWriteBuffer(redMessage(":ircserv 441 " + client.getNickname() + " " + targetNick + " " + channel->getNameChannel() + " :They aren't on that channel"));
         return;
     }
     if (set) {
         channel->addOperator(target);
-        client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + " +o " + targetNick + "\033[0m");
+        client.appendWriteBuffer(greenMessage(":ircserv MODE " + channel->getNameChannel() + " +o " + targetNick));
     } else {
         channel->removeOperator(target);
-        client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + " -o " + targetNick + "\033[0m");
+        client.appendWriteBuffer(greenMessage(":ircserv MODE " + channel->getNameChannel() + " -o " + targetNick));
     }
 }
