@@ -5,8 +5,8 @@ void CommandHandler::handlePing(Client& client, const Message& message, std::vec
     std::vector<std::string> params = message.getParameters();
     
     if (params.size() < 1) {
-        client.appendWriteBuffer(":ircserv 409 " + client.getNickname() + " :No origin specified");        
+        client.appendWriteBuffer(redMessage(":ircserv 409 " + client.getNickname() + " :No origin specified"));
     } else {
-        client.appendWriteBuffer(":ircserv PONG ircserv :" + params.front());
+        client.appendWriteBuffer(blueMessage(":ircserv PONG ircserv :" + params.front()));
     }
 }

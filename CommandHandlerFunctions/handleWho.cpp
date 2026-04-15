@@ -5,7 +5,7 @@ void CommandHandler::handleWho(Client& client, const Message& message, std::vect
     std::vector<std::string> params = message.getParameters();
 
     if (params.size() < 1) {
-        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " who :Not enough parameters"));
+        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " WHO :Not enough parameters"));
         return;
     }
 
@@ -20,12 +20,12 @@ void CommandHandler::handleWho(Client& client, const Message& message, std::vect
 
             while (firstClient != lastClient)
             {
-                client.appendWriteBuffer(":ircserv 352 " + client.getNickname() + " " + channelName + " " +  firstClient->second->getUsername() + " " + firstClient->second->getIp() + " ircserv " + firstClient->second->getNickname() + " H :0 " + firstClient->second->getRealname());
+                client.appendWriteBuffer(greenMessage(":ircserv 352 " + client.getNickname() + " " + channelName + " " +  firstClient->second->getUsername() + " " + firstClient->second->getIp() + " ircserv " + firstClient->second->getNickname() + " H :0 " + firstClient->second->getRealname()));
 
                 firstClient++;
             }
         } else
             client.appendWriteBuffer(redMessage(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel"));
     }
-    client.appendWriteBuffer(":ircserv 315 " +  client.getNickname() + " " + channelName + " :End of /WHO list");
+    client.appendWriteBuffer(greenMessage(":ircserv 315 " +  client.getNickname() + " " + channelName + " :End of /WHO list"));
 }

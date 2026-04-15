@@ -3,5 +3,5 @@
 
 void handleModeTopicRestricted(Channel* channel, bool set, Client& client) {
     channel->topicRestricted = set;
-    client.appendWriteBuffer(":ircserv MODE " + channel->getNameChannel() + (set ? " +t" : " -t"));
+    client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + (set ? " +t" : " -t") + "\033[0m");
 }

@@ -8,7 +8,7 @@ void CommandHandler::handlePassword(Client& client, const Message& message, std:
         if (params.front() == _serverPassword)
             client.setHasPassed(true);
         else
-            client.appendWriteBuffer(":ircserv 464 " + client.getNickname() + " :Password incorrect");
+            client.appendWriteBuffer(redMessage(":ircserv 464 " + client.getNickname() + " :Password incorrect"));
     } else
-        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " password :Not enough parameters");
+        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " PASS :Not enough parameters"));
 }

@@ -5,12 +5,16 @@ void CommandHandler::handleNames(Client& client, const Message& message, std::ve
 	std::vector<std::string> params = message.getParameters();
 
 	if (params.size() < 1) {
-		client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " names :Not enough parameters");
+		client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " NAMES :Not enough parameters"));
 		return;
 	}
 
 	std::string channelName = params.front();
 	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
+	if (it == _channels.end()) {
+		client.appendWriteBuffer(redMessage(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel"));
+		return;
+	}
 
 
 	std::map<int, Client*> allClients =  it->second->getAllChanel();
@@ -24,7 +28,7 @@ void CommandHandler::handleNames(Client& client, const Message& message, std::ve
 		firstClient++;
 	}
 
-	client.appendWriteBuffer(":ircserv 353 " + client.getNickname() + " = " + it->second->getNameChannel() + " :" + listNicks);
-	client.appendWriteBuffer(":ircserv 366 " + client.getNickname() + " " + it->second->getNameChannel() + " :End of /NAMES list");
+	client.appendWriteBuffer(greenMessage(":ircserv 353 " + client.getNickname() + " = " + it->second->getNameChannel() + " :" + listNicks));
+	client.appendWriteBuffer(greenMessage(":ircserv 366 " + client.getNickname() + " " + it->second->getNameChannel() + " :End of /NAMES list"));
 }
 

@@ -24,7 +24,7 @@ void CommandHandler::handleQuit(Client& client, const Message& message, std::vec
             std::map<int, Client*>::const_iterator lastClient = currentChannel->getAllChanel().end();
 
             while (firstClient != lastClient) {
-                firstClient->second->appendWriteBuffer(":" + client.getNickname() + " QUIT :Quit: " + quitMsg);
+                firstClient->second->appendWriteBuffer(blueMessage(":" + client.getNickname() + " QUIT :Quit: " + quitMsg));
                 firstClient++;
             }
             
@@ -37,6 +37,6 @@ void CommandHandler::handleQuit(Client& client, const Message& message, std::vec
         }
     }
     
-    client.appendWriteBuffer("Closing Link: " + client.getIp() + " (Quit)");
+    client.appendWriteBuffer(greenMessage(":ircserv NOTICE " + client.getNickname() + " :Closing Link: " + client.getIp() + " (Quit)"));
     client.setToBeDisconnected(true);
 }

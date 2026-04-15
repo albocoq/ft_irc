@@ -5,7 +5,7 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
 	std::vector<std::string> params = message.getParameters();
 	
 	if (params.size() < 1) {
-		client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " join :Not enough parameters");
+		client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " JOIN :Not enough parameters"));
 		return;
 	}
 
@@ -33,7 +33,7 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
 			{
 				if (password != currentChannel->key)
 				{
-					client.appendWriteBuffer(":ircserv 475 " + client.getNickname() + " " + currentChannel->getNameChannel() +" :Cannot join channel (+k)");
+					client.appendWriteBuffer(redMessage(":ircserv 475 " + client.getNickname() + " " + currentChannel->getNameChannel() +" :Cannot join channel (+k)"));
 					return ;
 				}
 			}
@@ -50,7 +50,7 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
 			{
 				if (password != currentChannel->key)
 				{
-					client.appendWriteBuffer(":ircserv 475 " + client.getNickname() + " " + currentChannel->getNameChannel() +" :Cannot join channel (+k)");
+					client.appendWriteBuffer(redMessage(":ircserv 475 " + client.getNickname() + " " + currentChannel->getNameChannel() +" :Cannot join channel (+k)"));
 					return ;
 				}
 			}
@@ -70,13 +70,13 @@ void CommandHandler::handleJoin(Client& client, const Message& message, std::vec
 	std::string listNicks = "";
 
 	while (firstClient != lastClient) {
-		firstClient->second->appendWriteBuffer(":" + client.getNickname() + " JOIN " + channelName);
+		firstClient->second->appendWriteBuffer(greenMessage(":" + client.getNickname() + " JOIN " + channelName));
 		std::string isOperator = currentChannel->isOperator(firstClient->second) ? "@" : "";
 		listNicks += isOperator + firstClient->second->getNickname() + " ";
 		firstClient++;
 	}
 	
 
-	client.appendWriteBuffer(":ircserv 353 " + client.getNickname() + " = " + currentChannel->getNameChannel() + " :" + listNicks);
-	client.appendWriteBuffer(":ircserv 366 " + client.getNickname() + " " + currentChannel->getNameChannel() + " :End of /NAMES list");
+	client.appendWriteBuffer(greenMessage(":ircserv 353 " + client.getNickname() + " = " + currentChannel->getNameChannel() + " :" + listNicks));
+	client.appendWriteBuffer(greenMessage(":ircserv 366 " + client.getNickname() + " " + currentChannel->getNameChannel() + " :End of /NAMES list"));
 }

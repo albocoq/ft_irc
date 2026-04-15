@@ -14,14 +14,14 @@ void handleModeOperator(Channel* channel, bool set, Client& client, const std::s
         }
     }
     if (!target) {
-        client.appendWriteBuffer(":ircserv 441 " + client.getNickname() + " " + targetNick + " " + channel->getNameChannel() + " :They aren't on that channel");
+        client.appendWriteBuffer("\033[31m:ircserv 441 " + client.getNickname() + " " + targetNick + " " + channel->getNameChannel() + " :They aren't on that channel\033[0m");
         return;
     }
     if (set) {
         channel->addOperator(target);
-        client.appendWriteBuffer(":ircserv MODE " + channel->getNameChannel() + " +o " + targetNick);
+        client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + " +o " + targetNick + "\033[0m");
     } else {
         channel->removeOperator(target);
-        client.appendWriteBuffer(":ircserv MODE " + channel->getNameChannel() + " -o " + targetNick);
+        client.appendWriteBuffer("\033[32m:ircserv MODE " + channel->getNameChannel() + " -o " + targetNick + "\033[0m");
     }
 }
