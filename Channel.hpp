@@ -9,7 +9,7 @@
 
 class Channel {
 	private:
-		std::map<int, Client*> _clients; // fd -> Client* "4" -> allan
+		std::map<int, Client*> _clients;
 		std::set<Client *> operators;
 		std::set<Client *> invited;
 		std::string _name;
