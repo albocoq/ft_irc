@@ -10,5 +10,5 @@ void CommandHandler::handleUser(Client& client, const Message& message, std::vec
         client.setHasUser(true);
         checkRegistration(client);
     } else
-        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " user :Not enough parameters"));
+        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " USER :Not enough parameters"));
 }

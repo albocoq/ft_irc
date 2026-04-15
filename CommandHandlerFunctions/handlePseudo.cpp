@@ -9,7 +9,7 @@ void CommandHandler::handlePseudo(Client& client, const Message& message, std::v
 
             for (size_t i = 0; i < annular.size(); i++) {
                 if (annular[i]->getNickname() == pseudo && annular[i] != &client) {
-                    client.appendWriteBuffer(":ircserv 433 * " + pseudo + " :Nickname is already in use");
+                    client.appendWriteBuffer(redMessage(":ircserv 433 * " + pseudo + " :Nickname is already in use"));
                     return;
                 }
             }
@@ -18,5 +18,5 @@ void CommandHandler::handlePseudo(Client& client, const Message& message, std::v
             checkRegistration(client);
         }
     } else
-        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " pseudo :Not enough parameters");
+        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " NICK :Not enough parameters"));
 }

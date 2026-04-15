@@ -1,7 +1,6 @@
-#include "../Channel.hpp"
-#include "../Client.hpp"
+#include "../CommandHandler.hpp"
 
-void handleModeInviteOnly(Channel* channel, bool set, Client& client) {
+void CommandHandler::handleModeInviteOnly(Channel* channel, bool set, Client& client) {
 	channel->inviteOnly = set;
-	client.appendWriteBuffer(":ircserv MODE " + channel->getNameChannel() + (set ? " +i" : " -i"));
+	client.appendWriteBuffer(greenMessage(":ircserv MODE " + channel->getNameChannel() + (set ? " +i" : " -i")));
 }

@@ -11,7 +11,7 @@ void CommandHandler::handleMode(Client& client, const Message& message, std::vec
 	std::vector<std::string> params = message.getParameters();
 
 	if (params.size() < 2) {
-		client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " MODE :Not enough parameters");
+		client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " MODE :Not enough parameters"));
 		return;
 	}
 	std::string channelName = params[0];
@@ -20,13 +20,13 @@ void CommandHandler::handleMode(Client& client, const Message& message, std::vec
 
 	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
 	if (it == _channels.end()) {
-		client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel");
+		client.appendWriteBuffer(redMessage(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel"));
 		return;
 	}
 
 	Channel* channel = it->second;
 	if (!channel->isOperator(&client)) {
-		client.appendWriteBuffer(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator");
+		client.appendWriteBuffer(redMessage(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator"));
 		return;
 	}
 	bool set = true;
@@ -60,7 +60,7 @@ void CommandHandler::handleMode(Client& client, const Message& message, std::vec
 					handleModeLimit(channel, set, client, -1);
 				break;
 			default:
-				client.appendWriteBuffer(":ircserv 472 " + client.getNickname() + " " + mode + " :is unknown mode char to me");
+				client.appendWriteBuffer(redMessage(":ircserv 472 " + client.getNickname() + " " + mode + " :is unknown mode char to me"));
 				break;
 		}
 	}

@@ -5,7 +5,7 @@ void CommandHandler::handleKick(Client& client, const Message& message, std::vec
     std::vector<std::string> params = message.getParameters();
 
     if (params.size() < 2) {
-        client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " KICK :Not enough parameters");
+        client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " KICK :Not enough parameters"));
         return;
     }
     std::string channelName = params[0];
@@ -14,12 +14,12 @@ void CommandHandler::handleKick(Client& client, const Message& message, std::vec
 
     std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
     if (it == _channels.end()) {
-        client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel");
+        client.appendWriteBuffer(redMessage(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel"));
         return;
     }
     Channel* channel = it->second;
     if (!channel->isOperator(&client)) {
-        client.appendWriteBuffer(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator");
+        client.appendWriteBuffer(redMessage(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator"));
         return;
     }
     Client* target = NULL;
@@ -31,13 +31,13 @@ void CommandHandler::handleKick(Client& client, const Message& message, std::vec
         }
     }
     if (!target) {
-        client.appendWriteBuffer(":ircserv 441 " + client.getNickname() + " " + targetNick + " " + channelName + " :They aren't on that channel");
+        client.appendWriteBuffer(redMessage(":ircserv 441 " + client.getNickname() + " " + targetNick + " " + channelName + " :They aren't on that channel"));
         return;
     }
     std::string kickMsg = ":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getIp() + " KICK " + channelName + " " + targetNick + (reason.empty() ? "" : " :" + reason);
     std::map<int, Client*>::iterator mit = members.begin();
     for (; mit != members.end(); ++mit) {
-        mit->second->appendWriteBuffer(kickMsg);
+        mit->second->appendWriteBuffer(greenMessage(kickMsg));
     }
     channel->removeClient(target->getFd());
     if (channel->empty()) {

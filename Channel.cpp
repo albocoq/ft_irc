@@ -32,7 +32,7 @@ void Channel::addOperator(Client *client) { operators.insert(client); }
 
 void Channel::getAllOperator() { 
 	std::set<Client*>::iterator it = operators.begin();
-	std::set<Client*>::iterator ite = operators.end(); // allan nico carlos
+	std::set<Client*>::iterator ite = operators.end();
 
 	while (it != ite)
 	{

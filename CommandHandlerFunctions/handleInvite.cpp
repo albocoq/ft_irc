@@ -3,7 +3,7 @@
 void CommandHandler::handleInvite(Client& client, const Message& message, std::vector<Client*>& annular) {
 	std::vector<std::string> params = message.getParameters();
 	if (params.size() < 2) {
-		client.appendWriteBuffer(":ircserv 461 " + client.getNickname() + " INVITE :Not enough parameters");
+		client.appendWriteBuffer(redMessage(":ircserv 461 " + client.getNickname() + " INVITE :Not enough parameters"));
 		return;
 	}
 	std::string channelName = params[0];
@@ -11,16 +11,16 @@ void CommandHandler::handleInvite(Client& client, const Message& message, std::v
 
 	std::map<std::string, Channel*>::iterator it = _channels.find(channelName);
 	if (it == _channels.end()) {
-		client.appendWriteBuffer(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel");
+		client.appendWriteBuffer(redMessage(":ircserv 403 " + client.getNickname() + " " + channelName + " :No such channel"));
 		return;
 	}
 	Channel* channel = it->second;
 	if (!channel->isClient(client.getFd())) {
-		client.appendWriteBuffer(":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel");
+		client.appendWriteBuffer(redMessage(":ircserv 442 " + client.getNickname() + " " + channelName + " :You're not on that channel"));
 		return;
 	}
 	if (channel->inviteOnly && !channel->isOperator(&client)) {
-		client.appendWriteBuffer(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator");
+		client.appendWriteBuffer(redMessage(":ircserv 482 " + client.getNickname() + " " + channelName + " :You're not channel operator"));
 		return;
 	}
 	Client* target = NULL;
@@ -31,14 +31,14 @@ void CommandHandler::handleInvite(Client& client, const Message& message, std::v
 		}
 	}
 	if (!target) {
-		client.appendWriteBuffer(":ircserv 401 " + client.getNickname() + " " + targetNick + " :No such nick");
+		client.appendWriteBuffer(redMessage(":ircserv 401 " + client.getNickname() + " " + targetNick + " :No such nick"));
 		return;
 	}
 	if (channel->isClient(target->getFd())) {
-		client.appendWriteBuffer(":ircserv 443 " + client.getNickname() + " " + targetNick + " " + channelName + " :is already on channel");
+		client.appendWriteBuffer(redMessage(":ircserv 443 " + client.getNickname() + " " + targetNick + " " + channelName + " :is already on channel"));
 		return;
 	}
 	channel->invite(target);
-	target->appendWriteBuffer(":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getIp() + " INVITE " + targetNick + " " + channelName);
-	client.appendWriteBuffer(":ircserv 341 " + client.getNickname() + " " + targetNick + " " + channelName);
+	target->appendWriteBuffer(blueMessage(":" + client.getNickname() + "!" + client.getUsername() + "@" + client.getIp() + " INVITE " + targetNick + " " + channelName));
+	client.appendWriteBuffer(greenMessage(":ircserv 341 " + client.getNickname() + " " + targetNick + " " + channelName));
 }
