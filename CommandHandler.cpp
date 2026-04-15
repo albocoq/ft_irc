@@ -14,6 +14,7 @@ CommandHandler::CommandHandler(std::string serverPassword): _serverPassword(serv
     _commands.insert(std::make_pair("KICK", &CommandHandler::handleKick));
     _commands.insert(std::make_pair("INVITE", &CommandHandler::handleInvite));
     _commands.insert(std::make_pair("MODE", &CommandHandler::handleMode));
+    _commands.insert(std::make_pair("NAMES", &CommandHandler::handleNames));
 }
 
 CommandHandler::~CommandHandler() {
@@ -80,3 +81,4 @@ void CommandHandler::checkRegistration(Client& client) {
         client.appendWriteBuffer(greenMessage(":ircserv 001 " + client.getNickname() + " :Welcome to the ft_irc network!"));
     }
 }
+

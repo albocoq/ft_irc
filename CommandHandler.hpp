@@ -36,6 +36,7 @@ class CommandHandler {
         void handleInvite(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleMode(Client& client, const Message& message, std::vector<Client*>& annular);
         void handleWho(Client& client, const Message& message, std::vector<Client*>& annular);
+        void handleNames(Client& client, const Message& message, std::vector<Client*>& annular);
 
 		void checkRegistration(Client& client);
 

@@ -1,7 +1,7 @@
 #include "Channel.hpp"
 
 Channel::Channel(const std::string &name)
-	: inviteOnly(false), topicRestricted(true), userLimit(-1), _name(name) {}
+	: _name(name), inviteOnly(false), topicRestricted(true), userLimit(-1) {}
 
 const std::string &Channel::getName() const { return _name; }
 
@@ -29,6 +29,18 @@ const std::map<int, Client*>& Channel::getAllChanel() const {
 }
 
 void Channel::addOperator(Client *client) { operators.insert(client); }
+
+void Channel::getAllOperator() { 
+	std::set<Client*>::iterator it = operators.begin();
+	std::set<Client*>::iterator ite = operators.end(); // allan nico carlos
+
+	while (it != ite)
+	{
+		std::cout << *it << " ";
+		it++;
+	}
+	std::cout << std::endl;
+}
 
 void Channel::removeOperator(Client *client) { operators.erase(client); }
 
