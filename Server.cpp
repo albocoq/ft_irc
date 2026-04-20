@@ -4,9 +4,11 @@
 #include "Client.hpp"
 
 
+// Crea el servidor con el puerto y la clave que se usaran.
 Server::Server(int port, const std::string& password)
     : _port(port), _password(password), _serverFd(-1), _nextClientId(1), _handler(password) {}
 
+// Cierra el socket del servidor y libera los clientes guardados.
 Server::~Server() {
     if (_serverFd >= 0)
         close(_serverFd);
@@ -15,6 +17,7 @@ Server::~Server() {
         delete _clients[i];
 }
 
+// Prepara el socket, lo enlaza al puerto y lo deja listo para recibir conexiones.
 void Server::initServer() {
     _serverFd = socket(AF_INET, SOCK_STREAM, 0);
     if (_serverFd < 0) {
@@ -54,6 +57,7 @@ void Server::initServer() {
     std::cout << "Server running on port " << _port << std::endl;
 }
 
+// Bucle principal: espera eventos y atiende lectura, escritura y desconexiones.
 void Server::run() {
     while (true) {
         if (poll(&_fds[0], _fds.size(), -1) < 0) {
@@ -109,6 +113,7 @@ void Server::run() {
     }
 }
 
+// Acepta un cliente nuevo, lo guarda y lo agrega al control de eventos.
 void Server::acceptClient() {
     sockaddr_in clientAddr;
     socklen_t len = sizeof(clientAddr);
@@ -136,6 +141,7 @@ void Server::acceptClient() {
     std::cout << "New client: " << clientId  << std::endl;
 }
 
+// Lee datos de un cliente, separa lineas completas y ejecuta sus comandos.
 void Server::handleClientRead(size_t i) {
     char buffer[1024];
     memset(buffer, 0, sizeof(buffer));
@@ -170,6 +176,7 @@ void Server::handleClientRead(size_t i) {
     }
 }
 
+// Envia al cliente lo que tenga pendiente en su buffer de salida.
 void Server::handleClientWrite(size_t i) {
     Client* client = getClientByFd(_fds[i].fd);
     if (!client) {
@@ -203,6 +210,7 @@ void Server::handleClientWrite(size_t i) {
         disconnectClient(i);
 }
 
+// Intenta vaciar mensajes pendientes de todos los clientes.
 void Server::flushPendingWrites() {
     for (size_t i = 0; i < _fds.size(); ) {
         int fd = _fds[i].fd;
@@ -226,6 +234,7 @@ void Server::flushPendingWrites() {
     }
 }
 
+// Desconecta un cliente, cierra su fd y lo elimina de las listas.
 void Server::disconnectClient(size_t i) {
     int fd = _fds[i].fd;
     int disconnectedClientId = -1;
@@ -248,6 +257,7 @@ void Server::disconnectClient(size_t i) {
         std::cout << "Disconnected fd: " << fd << std::endl;
 }
 
+// Busca y devuelve el cliente que corresponde a un fd.
 Client* Server::getClientByFd(int fd) {
     for (size_t i = 0; i < _clients.size(); i++) {
         if (_clients[i]->getFd() == fd)
